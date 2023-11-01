@@ -1,0 +1,4 @@
+grid
+diesel_mini_grid
+solar_home
+solar_mini_grid

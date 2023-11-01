@@ -1,0 +1,7 @@
+*.egg-info
+*.pyc
+*.sw[op]
+.cache
+.eggs
+.ipynb_checkpoints
+.~lock.*
