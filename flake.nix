@@ -13,6 +13,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
             git curl google-cloud-sdk duckdb zip
              (python311.withPackages(ps: with ps; [
                pyarrow duckdb h3 rasterio shapely jupyter geopandas matplotlib
+               gdal networkx geopy scikit-learn rtree
              ]))
     ];
 
@@ -51,9 +52,12 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
      echo "         git init ."
      echo "         git add devenv.* *.py"
      echo "         git commit -m 'Initial commit'"
-     echo "serve"
-     echo "         Serve the data via STAC for apps like QGIS or your colleages on the intranet"
-     echo "         serve ~/data/google-buildings.zip"
+     echo "prepare-np-run"
+     echo "         Takes a transformers.csv file and prepares a dataset folder and config file for NP"
+     echo "         prepare-np-run ~/data/transformers.csv ~/data/np-input.zip"
+
+     echo "networkplanner"
+     echo "         networkplanner ~/data/np-input.zip ~/data/np-output.zip"
      echo ""
     '';
    }
