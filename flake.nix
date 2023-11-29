@@ -18,7 +18,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
     ];
 
     scripts.google.exec = ''gsutil -m rsync -avhP gs://open-buildings-data/v3/points_s2_level_4_gzip $1'';
-    scripts.parquet.exec = ''time python -W ignore google_to_parquet.py $1 $2'';
+    scripts.parquet.exec = ''time python -W ignore google_to_parquet.py $@'';
     scripts.pstac.exec = ''
      zip -r -0 $1 devenv.nix devevn.yaml devenv.lock pstac.zip
      zip -r -0 $1 *.py
@@ -40,7 +40,10 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
      echo "         google ~/data/buildings"
      echo "parquet"
      echo "         Convert to parquet from gzip"
-     echo "         parquet -h3min 5 -h3max 8 ~/data/buildings ~/data/parquet_by_country/"
+     echo "         parquet  -h3min 5 -h3max 8 -input_dir ~/data/buildings -output_dir ~/data/parquet"
+     echo "administrative"
+     echo "         Split by country administrative divisions"
+     echo "         administrative -country 'UG' -divisions uganda_districts.parquet"
      echo "structures"
      echo "         structures ~/data/parquet_by_country/UG/ARUA ~/data/datasets/structures_UG_ARUA.csv"  
      echo "pue"
