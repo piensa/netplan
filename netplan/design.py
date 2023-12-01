@@ -2074,9 +2074,8 @@ def start():
     out = sys.argv[4]
     output_dir = os.path.join(out, uuid)
 
-    structures_raw = db.sql(f"SELECT h3_min as uuid, h3_max as structure FROM '{input_file}/*.parquet'")
-
-    structures = db.sql(f"SELECT structure from structures_raw WHERE uuid = {uuid}").fetchnumpy()["structure"]
+    structures_raw = db.sql(f"SELECT lan, structure FROM '{input_file}/*.parquet'")
+    structures = db.sql(f"SELECT structure from structures_raw WHERE lan = {uuid}").fetchnumpy()["structure"]
     lans = [str(hex(ss))[2:] for ss in structures]
 
     geo = [h3.h3_to_geo(lan) for lan in lans] 
