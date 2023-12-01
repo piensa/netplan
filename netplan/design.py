@@ -1891,7 +1891,7 @@ countries = {
   ]],
 };
 
-def generateDictsFromShp(x, y):
+def generateDictsFromShp(x, y, pue):
 
     nodesByClusterID = collections.defaultdict(list)
     clusterByNode = {}
@@ -1900,8 +1900,11 @@ def generateDictsFromShp(x, y):
     LVCostDict = {}
     nodes_weights_output = []
     FID = 0
-    for xx, yy in zip(x, y):
-        nodeWeight = 1
+    for xx, yy, pp in zip(x, y, pue):
+        if pp:
+            nodeWeight = 10
+        else:
+            nodeWeight = 1
         FID += 1
         nodes[FID] = Node(FID, xx, yy, nodeWeight)
         centers[FID] = Node(FID, xx, yy, nodeWeight)
@@ -1924,12 +1927,14 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
             longitudes = [d['longitude'] for d in raw]
             lv_per_customer = [d['lv_meters_per_customer'] for d in raw]
             customers = [d['customers'] for d in raw]
+            pues = [d['pues'] for d in raw]
 
             output = {
                 "latitude": latitudes,
                 "longitude": longitudes,
                 "lv_meters_per_customer": lv_per_customer,
-                "customers": customers
+                "customers": customers,
+                "pues": pues
             }
             return output
         
@@ -1948,7 +1953,8 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
     #print("UTM", zone_number, zone_letter)
     x = df.x
     y = df.y
-    nodesByClusterID, clusterByNode, nodes, centers, LVCostDict , _ = generateDictsFromShp(x, y)
+    pue = df.pue
+    nodesByClusterID, clusterByNode, nodes, centers, LVCostDict , _ = generateDictsFromShp(x, y, pue)
 
     _, tree, centers, nodesByClusterID, _ = run(centers, nodesByClusterID, clusterByNode,
                                                                     LVCostDict, searchRadius, MV, LV, TCost,
@@ -1973,10 +1979,11 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
     my_lv = 0
     transformers = []
 
-    for ID in centers.keys():       
+    for ID in centers.keys():
         nodesByNodeID = {}
         # Start on -1 to not over count transformers
         customers = -1
+        totalWeight = 0
         segments, lvCost = CMST(nodesByClusterID[ID], maxLVLenghtInCluster, centers[ID])
 
         my_lv += lvCost
@@ -1992,10 +1999,12 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
             tree._netIDByNode[node] = netID
             tree._nodesByNetID[netID].append(node)
             customers += 1
+            totalWeight += node._weight
         for segment in segments.values():
             tree._network[netID].append(segment)
 
-        transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers))
+        pues = int((totalWeight - customers)/10)
+        transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers, pues))
    
     
     lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, zone_number, zone_letter)
@@ -2008,13 +2017,14 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
 
     lv_per_customer = [dd[2] for dd in transformers]
     customers = [dd[3] for dd in transformers]
+    pues = [dd[4] for dd in transformers]
     
     output = {"latitude": latitudes, "longitude": longitudes,
               "lv_meters_per_customer": lv_per_customer,
-              "customers": customers}
+              "customers": customers, "pues": pues}
     
     rows = list(zip(output["latitude"], output["longitude"], 
-                output["lv_meters_per_customer"], output["customers"]))
+                output["lv_meters_per_customer"], output["customers"], output["pues"]))
 
     with open(os.path.join(outputDir, "transformers.csv"), "w", newline="") as f:
         csvwriter = csv.writer(f)
@@ -2075,15 +2085,19 @@ def start():
     output_dir = os.path.join(out, uuid)
 
     structures_raw = db.sql(f"SELECT lan, structure, pue FROM '{input_file}/*.parquet'")
-    structures = db.sql(f"SELECT structure from structures_raw WHERE lan = {uuid}").fetchnumpy()["structure"]
-    pues = db.sql(f"SELECT structure from structures_raw WHERE lan = {uuid} AND pue IS NOT NULL").fetchnumpy()["structure"]
-    lans = [str(hex(ss))[2:] for ss in structures]
+    structures = db.sql(f"SELECT structure, pue from structures_raw WHERE lan = {uuid}").df()
+    h3_structures = [str(hex(ss))[2:] for ss in structures.structure]
 
-    geo = [h3.h3_to_geo(lan) for lan in lans] 
+    geo = [h3.h3_to_geo(h3_s) for h3_s in h3_structures] 
     x_y = [from_latlon(latitude=ll[1], longitude=ll[0]) for ll in geo]
-    df = pd.DataFrame(x_y, columns=['x', 'y', 'utm_zone_number', 'utm_zone_letter'])
-    pues_in_cell = len(pues)
+   
+    xy_df = pd.DataFrame(x_y, columns=['x', 'y', 'utm_zone_number', 'utm_zone_letter'])
+    
+    df = pd.concat([structures, xy_df], axis=1)
+
+    non_pue = df.pue.isna().sum()
     structures_in_cell = len(df)
+    pues_in_cell = structures_in_cell - non_pue
 
     print(uuid, " pues ", pues_in_cell)
     print(uuid, " structures ", structures_in_cell)
@@ -2093,8 +2107,7 @@ def start():
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
-   
- 
+    
     if len(df) > 0:
         tlnd(output_dir, df, pues_in_cell=pues_in_cell, structures_in_cell=structures_in_cell)
 
