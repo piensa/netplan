@@ -2088,10 +2088,11 @@ def start():
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
-    
+   
+ 
     if len(gdf) > 0:
 
-        tlnd(output_dir, srs, gdf, pues_in_cell, structures_in_cell)
+        tlnd(output_dir, gdf.x, gdf.y, pues_in_cell=0, structures_in_cell=0)
 
 
 if __name__ == "__main__":
