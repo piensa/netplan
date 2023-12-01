@@ -31,7 +31,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
      echo "         lans -h3min 6 -h3max 15 -input_dir ~/data/csv -output_dir ~/data/h3dist"
      echo "net"
      echo "         Runs the two level network design on a given lan"
-     echo "         net -lan_id 605363477158035455 ~/data/h3dist/ ~/data/tlnd/zombo"
+     echo "         net -lan_id 605363479305519103 ~/data/h3dist/ ~/data/tlnd/zombo"
      echo "plan"
      echo "         plan ~/data/tlnd/zombo"
      echo "jupyter"
