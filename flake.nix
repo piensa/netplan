@@ -41,7 +41,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
      echo "         pue ~/data/datasets/pue_UG_ARUA.csv ~/data/datasets/structures_UG_ARUA.csv ~/data/datasets/pue_structures_UG_ARUA.csv"   
      echo "net"
      echo "         Runs the two level network design on the points"
-     echo "         net -lan_id 604483198646222847 ~/data/h3dist/ ~/data/tlnd/zombo"
+     echo "         net -lan_id 605363477158035455 ~/data/h3dist/ ~/data/tlnd/zombo"
      echo "plan"
      echo "         plan ~/data/inputs/UG-ARUA.zip ~/data/outputs/UG-ARUA.zip"
      echo "jupyter"
