@@ -12,6 +12,7 @@ import csv
 import sys
 import time
 import copy
+import h3
 import gc
 import collections
 import multiprocessing
@@ -2050,3 +2051,50 @@ def read_lan(path_to_gzipped_csv):
     y = [float(dd["y"]) for dd in data]
     
     return x, y
+
+def start():
+    import geopandas as gpd
+    import osgeo.osr as osr
+
+    srs = osr.SpatialReference()
+    srs.SetFromUserInput("EPSG:32636")
+    lan_id = sys.argv[1]
+    input_file = sys.argv[2]
+    output_dir = sys.argv[3]
+    print(lan_id, input_file, output_dir)
+    output_dir = os.path.join("./output", uuid)
+
+    pues_raw = pd.read_csv('./pues.csv')
+    pues = pues_raw[pues_raw.h3_lan == uuid][['h3_15', 'x', 'y']]
+
+    structures_raw = pd.read_csv('./structures.csv')
+    
+    structures = structures_raw[structures_raw.h3_lan == uuid][['h3_15', 'x', 'y']]
+    
+    df = pd.concat([pues, structures])
+
+    gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y), crs="epsg:32636")
+
+    pues_in_cell = pues.h3_15.count()
+    structures_in_cell = structures.h3_15.count()
+
+    print(uuid, " pues ", pues_in_cell)
+    print(uuid, " structures ", structures_in_cell)
+    print(uuid, " points ", len(gdf))
+
+    if len(gdf) < structures_in_cell:
+        assert False, "How this did happen?"
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+    
+    if len(gdf) > 0:
+
+        main(output_dir, srs, gdf, pues_in_cell, structures_in_cell)
+
+
+if __name__ == "__main__":
+    start()
+    #import cProfile
+    #cProfile.run('start()')
+
