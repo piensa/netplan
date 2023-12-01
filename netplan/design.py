@@ -2054,6 +2054,7 @@ def read_lan(path_to_gzipped_csv):
 
 def start():
     import geopandas as gpd
+    import pandas as pd
     import osgeo.osr as osr
     import duckdb as db
 
@@ -2065,19 +2066,18 @@ def start():
     print(uuid, input_file, out)
     output_dir = os.path.join(out, uuid)
 
-    structures_raw = db.sql(f"SELECT h3_min as uuid FROM '{input_file}'")
+    structures_raw = db.sql(f"SELECT h3_min as uuid, h3_max as structure FROM '{input_file}'")
 
-    structures = structures_raw[structures_raw.uuid == uuid][['uuid']]
+    structures = db.sql(f"SELECT structure from structures_raw WHERE uuid = {uuid}").fetchnumpy()["structure"]
+    lans = [str(hex(ss))[2:] for ss in structures]
+    print(lans)
 
-    print(structures.shape)
-    assert False
-    
-    df = pd.concat([pues, structures])
-
+    lat_lng = [h3.h3_to_geo(lan) for lan in lans] 
+    df = pd.DataFrame(lat_lng, columns=['x', 'y'])
     gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y), crs="epsg:32636")
 
-    pues_in_cell = pues.h3_15.count()
-    structures_in_cell = structures.h3_15.count()
+    pues_in_cell = 0
+    structures_in_cell = len(df)
 
     print(uuid, " pues ", pues_in_cell)
     print(uuid, " structures ", structures_in_cell)
@@ -2091,7 +2091,7 @@ def start():
     
     if len(gdf) > 0:
 
-        main(output_dir, srs, gdf, pues_in_cell, structures_in_cell)
+        tlnd(output_dir, srs, gdf, pues_in_cell, structures_in_cell)
 
 
 if __name__ == "__main__":
