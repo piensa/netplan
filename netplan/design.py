@@ -2003,8 +2003,8 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
     coords = [to_latlon(dd[0], dd[1], zone_number, zone_letter) for dd in transformers]
 
     #coords = [(dd[0], dd[1]) for dd in transformers]
-    latitudes = [cc[0] for cc in coords]
-    longitudes = [cc[1] for cc in coords]
+    latitudes = [cc[1] for cc in coords]
+    longitudes = [cc[0] for cc in coords]
 
     lv_per_customer = [dd[2] for dd in transformers]
     customers = [dd[3] for dd in transformers]
