@@ -2074,18 +2074,19 @@ def start():
     out = sys.argv[4]
     output_dir = os.path.join(out, uuid)
 
-    structures_raw = db.sql(f"SELECT lan, structure FROM '{input_file}/*.parquet'")
+    structures_raw = db.sql(f"SELECT lan, structure, pue FROM '{input_file}/*.parquet'")
     structures = db.sql(f"SELECT structure from structures_raw WHERE lan = {uuid}").fetchnumpy()["structure"]
+    pues = db.sql(f"SELECT structure from structures_raw WHERE lan = {uuid} AND pue IS NOT NULL").fetchnumpy()["structure"]
     lans = [str(hex(ss))[2:] for ss in structures]
 
     geo = [h3.h3_to_geo(lan) for lan in lans] 
     x_y = [from_latlon(latitude=ll[1], longitude=ll[0]) for ll in geo]
     df = pd.DataFrame(x_y, columns=['x', 'y', 'utm_zone_number', 'utm_zone_letter'])
-    pues_in_cell = 0
+    pues_in_cell = len(pues)
     structures_in_cell = len(df)
 
-    #print(uuid, " pues ", pues_in_cell)
-    #print(uuid, " structures ", structures_in_cell)
+    print(uuid, " pues ", pues_in_cell)
+    print(uuid, " structures ", structures_in_cell)
     print(uuid, " contains ", len(df), "structures")
 
     if len(df) < structures_in_cell:
@@ -2096,8 +2097,7 @@ def start():
    
  
     if len(df) > 0:
-
-        tlnd(output_dir, df, pues_in_cell=0, structures_in_cell=0)
+        tlnd(output_dir, df, pues_in_cell=pues_in_cell, structures_in_cell=structures_in_cell)
 
 
 if __name__ == "__main__":
