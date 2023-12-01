@@ -2072,7 +2072,6 @@ def start():
 
     lat_lng = [h3.h3_to_geo(lan) for lan in lans] 
     df = pd.DataFrame(lat_lng, columns=['x', 'y'])
-    gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y), crs="epsg:32636")
 
     pues_in_cell = 0
     structures_in_cell = len(df)
@@ -2090,7 +2089,7 @@ def start():
  
     if len(gdf) > 0:
 
-        tlnd(output_dir, gdf.x, gdf.y, pues_in_cell=0, structures_in_cell=0)
+        tlnd(output_dir, df.x, df.y, pues_in_cell=0, structures_in_cell=0)
 
 
 if __name__ == "__main__":
