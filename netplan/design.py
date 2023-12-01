@@ -1990,7 +1990,8 @@ def tlnd(outputDir, x, y, pues_in_cell=0, structures_in_cell=0):
             tree._network[netID].append(segment)
 
         transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers))
-    
+   
+    print(centers[ID].__dict__) 
     lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, 36, "S")
 
     coords = [to_latlon(dd[0], dd[1], 36, "S") for dd in transformers]
@@ -2071,25 +2072,27 @@ def start():
     lans = [str(hex(ss))[2:] for ss in structures]
 
     lat_lng = [h3.h3_to_geo(lan) for lan in lans] 
-    df = pd.DataFrame(lat_lng, columns=['x', 'y'])
+    x_y = [from_latlon(latitude=ll[0], longitude=ll[1]) for ll in lat_lng]
+
+    df = pd.DataFrame(lat_lng, columns=['y', 'x'])
 
     pues_in_cell = 0
     structures_in_cell = len(df)
 
     print(uuid, " pues ", pues_in_cell)
     print(uuid, " structures ", structures_in_cell)
-    print(uuid, " points ", len(gdf))
+    print(uuid, " points ", len(df))
 
-    if len(gdf) < structures_in_cell:
+    if len(df) < structures_in_cell:
         assert False, "How this did happen?"
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
    
  
-    if len(gdf) > 0:
+    if len(df) > 0:
 
-        tlnd(output_dir, df.x, df.y, pues_in_cell=0, structures_in_cell=0)
+        tlnd(output_dir, df.y, df.x, pues_in_cell=0, structures_in_cell=0)
 
 
 if __name__ == "__main__":
