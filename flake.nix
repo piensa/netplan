@@ -20,18 +20,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
     scripts.google.exec = ''gsutil -m rsync -avhP gs://open-buildings-data/v3/points_s2_level_4_gzip $1'';
     scripts.parquet.exec = ''time python -W ignore google_to_parquet.py $@'';
     scripts.csv.exec = ''time python -W ignore csv_to_parquet.py $@'';
-    scripts.pstac.exec = ''
-     zip -r -0 $1 devenv.nix devevn.yaml devenv.lock pstac.zip
-     zip -r -0 $1 *.py
-     zip -r -0 $1 notebooks/*
-     zip -r -0 $1 LICENSE
-     cp pstac.zip $1
-     zip -r -0 -j $1 $2 
-    '';
-    scripts.serve.exec = ''
-     chmod +x $1
-     $1 -m http.serve -d /zip
-    '';
+    scripts.net.exec = ''time python -W ignore netplan/design.py'';
     enterShell = ''
      echo "############################################"
      echo "Welcome to the Network Planner"
@@ -52,7 +41,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
      echo "         pue ~/data/datasets/pue_UG_ARUA.csv ~/data/datasets/structures_UG_ARUA.csv ~/data/datasets/pue_structures_UG_ARUA.csv"   
      echo "net"
      echo "         Runs the two level network design on the points"
-     echo "         net -cutoutmax 2 -cutoutmin 0 ~/data/datasets/pue_structures_UG_ARUA.csv ~/data/datasets/config.json ~/data/inputs/UG-ARUA.zip"
+     echo "         net ~/data/h3dist/SelectedStructuresZOMO_asCSV.csv.parquet ~/data/tlnd/zomo/"
      echo "plan"
      echo "         plan ~/data/inputs/UG-ARUA.zip ~/data/outputs/UG-ARUA.zip"
      echo "jupyter"
