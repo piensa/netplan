@@ -19,31 +19,21 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
 
     scripts.google.exec = ''gsutil -m rsync -avhP gs://open-buildings-data/v3/points_s2_level_4_gzip $1'';
     scripts.parquet.exec = ''time python -W ignore google_to_parquet.py $@'';
-    scripts.csv.exec = ''time python -W ignore csv_to_parquet.py $@'';
-    scripts.net.exec = ''time python -W ignore netplan/design.py $@'';
+    scripts.lans.exec = ''time python -W ignore csv_to_parquet.py $@'';
+    sripts.net.exec = ''time python -W ignore netplan/design.py $@'';
+    sripts.plan.exec = ''time python -W ignore plan_network.py $@'';
     enterShell = ''
      echo "############################################"
      echo "Welcome to the Network Planner"
      echo ""
-     echo "google"
-     echo "         Download google open buildings point data (42GB)"
-     echo "         google ~/data/buildings"
-     echo "parquet"
-     echo "         Convert to parquet from gzip"
-     echo "         parquet  -h3min 5 -h3max 8 -input_dir ~/data/buildings -output_dir ~/data/parquet"
-     echo "administrative"
-     echo "         Split by country administrative divisions"
-     echo "         administrative -country 'UG' -divisions uganda_districts.parquet -column 'district_name' -input_dir ~/data/parquet -output_dir ~/data/country"
-     echo "structures"
-     echo "         structures ~/data/country/UG/ARUA ~/data/datasets/structures_UG_ARUA.csv"  
-     echo "pue"
-     echo "         adds a csv file with lat,long, and optional priority(decimal value between 0-1)"
-     echo "         pue ~/data/datasets/pue_UG_ARUA.csv ~/data/datasets/structures_UG_ARUA.csv ~/data/datasets/pue_structures_UG_ARUA.csv"   
+     echo "lans"
+     echo "         Convert to parquet from custom CSVs"
+     echo "         lans -h3min 6 -h3max 15 -input_dir ~/data/csv -output_dir ~/data/h3dist"
      echo "net"
-     echo "         Runs the two level network design on the points"
+     echo "         Runs the two level network design on a given lan"
      echo "         net -lan_id 605363477158035455 ~/data/h3dist/ ~/data/tlnd/zombo"
      echo "plan"
-     echo "         plan ~/data/inputs/UG-ARUA.zip ~/data/outputs/UG-ARUA.zip"
+     echo "         plan ~/data/tlnd/zombo"
      echo "jupyter"
      echo "         Review the plan with Jupyter notebook"
      echo "         jupyter notebook"
