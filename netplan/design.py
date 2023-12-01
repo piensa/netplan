@@ -1914,7 +1914,7 @@ def generateDictsFromShp(x, y):
 
 
 
-def tlnd(outputDir, x, y, pues_in_cell=0, structures_in_cell=0):
+def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
     tf = os.path.join(outputDir, "transformers.csv")
     if os.path.exists(tf):
         with open(tf) as tf_file:
@@ -1942,6 +1942,9 @@ def tlnd(outputDir, x, y, pues_in_cell=0, structures_in_cell=0):
     maxLVLenghtInCluster = 1000  # Lmax
     logfilename = outputDir + '/' + 'modelStatus.txt'
     startTime = time.time()
+
+    x = df.x
+    y = df.y
     nodesByClusterID, clusterByNode, nodes, centers, LVCostDict , _ = generateDictsFromShp(x, y)
 
     _, tree, centers, nodesByClusterID, _ = run(centers, nodesByClusterID, clusterByNode,
@@ -1991,10 +1994,12 @@ def tlnd(outputDir, x, y, pues_in_cell=0, structures_in_cell=0):
 
         transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers))
    
-    print(centers[ID].__dict__) 
-    lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, 36, "S")
+    
+    #lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, 36, "S")
 
-    coords = [to_latlon(dd[0], dd[1], 36, "S") for dd in transformers]
+    #coords = [to_latlon(dd[0], dd[1], 36, "S") for dd in transformers]
+
+    coords = [(dd[0], dd[1]) for dd in transformers]
     latitudes = [cc[0] for cc in coords]
     longitudes = [cc[1] for cc in coords]
 
@@ -2073,9 +2078,7 @@ def start():
 
     lat_lng = [h3.h3_to_geo(lan) for lan in lans] 
     x_y = [from_latlon(latitude=ll[0], longitude=ll[1], force_zone_number=36, force_zone_letter='S') for ll in lat_lng]
-
-    df = pd.DataFrame(lat_lng, columns=['x', 'y'])
-
+    df = pd.DataFrame(x_y, columns=['x', 'y', 'utm_zone_number', 'utm_zone_letter'])
     pues_in_cell = 0
     structures_in_cell = len(df)
 
@@ -2092,7 +2095,7 @@ def start():
  
     if len(df) > 0:
 
-        tlnd(output_dir, df.x, df.y, pues_in_cell=0, structures_in_cell=0)
+        tlnd(output_dir, df, pues_in_cell=0, structures_in_cell=0)
 
 
 if __name__ == "__main__":
