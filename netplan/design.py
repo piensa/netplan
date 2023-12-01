@@ -2087,7 +2087,6 @@ def start():
 
     print(uuid, " pues ", pues_in_cell)
     print(uuid, " structures ", structures_in_cell)
-    print(uuid, " contains ", len(df), "structures")
 
     if len(df) < structures_in_cell:
         assert False, "How this did happen?"
