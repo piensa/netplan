@@ -16,14 +16,14 @@ def process_file(input):
     out_dir = params["out_dir"]
 
     print(f"Processing {filename}")
-    b = db.sql(f"SELECT latitude, longitude FROM '{filename}'").arrow()
+    b = db.sql(f"SELECT latitude, longitude, pue FROM '{filename}'").arrow()
     lats = b["latitude"].combine_chunks().to_numpy()
     lons =  b["longitude"].combine_chunks().to_numpy()
     h3_15 = vect.geo_to_h3(lats, lons, h3_max)
     h3_7 = vect.h3_to_parent(h3_15, h3_min)
     h3_15_arrow = pa.array(h3_15, type=pa.uint64())
     h3_7_arrow = pa.array(h3_7, type=pa.uint64())
-    table = pa.table({'h3_max': h3_15_arrow, 'h3_min': h3_7_arrow})
+    table = pa.table({'structure': h3_15_arrow, 'lan': h3_7_arrow, 'pue': b["pue"]})
     os.makedirs(out_dir, exist_ok=True)
 
     target_file = os.path.join(out_dir, os.path.basename(filename).rsplit('.csv.gz', 1)[0]) + ".parquet"
@@ -33,7 +33,7 @@ def process_file(input):
 
 if __name__ == '__main__':
   print(sys.argv)
-  # expected format:  -h3min 5 -h3max 8 -input_dir ~/data/buildings -output_dir ~/data/parquet/
+  # expected format:  -h3min 6 -h3max 15 -input_dir ~/data/buildings -output_dir ~/data/parquet/
   # parsing based on position for now
   params = dict(
     h3_min = sys.argv[2],
