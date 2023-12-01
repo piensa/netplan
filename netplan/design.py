@@ -2055,6 +2055,7 @@ def read_lan(path_to_gzipped_csv):
 def start():
     import geopandas as gpd
     import osgeo.osr as osr
+    import duckdb as db
 
     srs = osr.SpatialReference()
     srs.SetFromUserInput("EPSG:32636")
@@ -2064,12 +2065,12 @@ def start():
     print(uuid, input_file, out)
     output_dir = os.path.join(out, uuid)
 
-    pues_raw = pd.read_csv('./pues.csv')
-    pues = pues_raw[pues_raw.h3_lan == uuid][['h3_15', 'x', 'y']]
+    structures_raw = db.sql(f"SELECT h3_min as uuid FROM '{input_file}'")
 
-    structures_raw = pd.read_csv('./structures.csv')
-    
-    structures = structures_raw[structures_raw.h3_lan == uuid][['h3_15', 'x', 'y']]
+    structures = structures_raw[structures_raw.uuid == uuid][['uuid']]
+
+    print(structures.shape)
+    assert False
     
     df = pd.concat([pues, structures])
 
