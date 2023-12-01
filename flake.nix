@@ -20,8 +20,8 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
     scripts.google.exec = ''gsutil -m rsync -avhP gs://open-buildings-data/v3/points_s2_level_4_gzip $1'';
     scripts.parquet.exec = ''time python -W ignore google_to_parquet.py $@'';
     scripts.lans.exec = ''time python -W ignore csv_to_parquet.py $@'';
-    sripts.net.exec = ''time python -W ignore netplan/design.py $@'';
-    sripts.plan.exec = ''time python -W ignore plan_network.py $@'';
+    scripts.net.exec = ''time python -W ignore netplan/design.py $@'';
+    scripts.plan.exec = ''time python -W ignore plan_network.py $@'';
     enterShell = ''
      echo "############################################"
      echo "Welcome to the Network Planner"
