@@ -2072,9 +2072,9 @@ def start():
     lans = [str(hex(ss))[2:] for ss in structures]
 
     lat_lng = [h3.h3_to_geo(lan) for lan in lans] 
-    x_y = [from_latlon(latitude=ll[0], longitude=ll[1]) for ll in lat_lng]
+    x_y = [from_latlon(latitude=ll[0], longitude=ll[1], force_zone_number=36, force_zone_letter='S') for ll in lat_lng]
 
-    df = pd.DataFrame(lat_lng, columns=['y', 'x'])
+    df = pd.DataFrame(lat_lng, columns=['x', 'y'])
 
     pues_in_cell = 0
     structures_in_cell = len(df)
@@ -2092,7 +2092,7 @@ def start():
  
     if len(df) > 0:
 
-        tlnd(output_dir, df.y, df.x, pues_in_cell=0, structures_in_cell=0)
+        tlnd(output_dir, df.x, df.y, pues_in_cell=0, structures_in_cell=0)
 
 
 if __name__ == "__main__":
