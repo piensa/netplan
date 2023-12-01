@@ -10,7 +10,7 @@ outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
   devShells = forEachSystem (system: let pkgs = nixpkgs.legacyPackages.${system}; in {
    default = devenv.lib.mkShell { inherit inputs pkgs; modules = [{
     packages = with pkgs; [
-            git curl google-cloud-sdk duckdb zip
+            parallel git curl google-cloud-sdk duckdb zip
              (python311.withPackages(ps: with ps; [
                pyarrow duckdb h3 rasterio shapely jupyter geopandas matplotlib
                gdal networkx geopy scikit-learn rtree
