@@ -2058,11 +2058,11 @@ def start():
 
     srs = osr.SpatialReference()
     srs.SetFromUserInput("EPSG:32636")
-    lan_id = sys.argv[1]
-    input_file = sys.argv[2]
-    output_dir = sys.argv[3]
-    print(lan_id, input_file, output_dir)
-    output_dir = os.path.join("./output", uuid)
+    uuid = sys.argv[2]
+    input_file = sys.argv[3]
+    out = sys.argv[4]
+    print(uuid, input_file, out)
+    output_dir = os.path.join(out, uuid)
 
     pues_raw = pd.read_csv('./pues.csv')
     pues = pues_raw[pues_raw.h3_lan == uuid][['h3_15', 'x', 'y']]
