@@ -1943,6 +1943,9 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
     logfilename = outputDir + '/' + 'modelStatus.txt'
     startTime = time.time()
 
+    zone_number = df.utm_zone_number[0]
+    zone_letter = df.utm_zone_letter[0]
+    #print("UTM", zone_number, zone_letter)
     x = df.x
     y = df.y
     nodesByClusterID, clusterByNode, nodes, centers, LVCostDict , _ = generateDictsFromShp(x, y)
@@ -1995,11 +1998,11 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
         transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers))
    
     
-    #lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, 36, "S")
+    lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, zone_number, zone_letter)
 
-    #coords = [to_latlon(dd[0], dd[1], 36, "S") for dd in transformers]
+    coords = [to_latlon(dd[0], dd[1], zone_number, zone_letter) for dd in transformers]
 
-    coords = [(dd[0], dd[1]) for dd in transformers]
+    #coords = [(dd[0], dd[1]) for dd in transformers]
     latitudes = [cc[0] for cc in coords]
     longitudes = [cc[1] for cc in coords]
 
@@ -2076,15 +2079,15 @@ def start():
     structures = db.sql(f"SELECT structure from structures_raw WHERE uuid = {uuid}").fetchnumpy()["structure"]
     lans = [str(hex(ss))[2:] for ss in structures]
 
-    lat_lng = [h3.h3_to_geo(lan) for lan in lans] 
-    x_y = [from_latlon(latitude=ll[0], longitude=ll[1], force_zone_number=36, force_zone_letter='S') for ll in lat_lng]
+    geo = [h3.h3_to_geo(lan) for lan in lans] 
+    x_y = [from_latlon(latitude=ll[1], longitude=ll[0]) for ll in geo]
     df = pd.DataFrame(x_y, columns=['x', 'y', 'utm_zone_number', 'utm_zone_letter'])
     pues_in_cell = 0
     structures_in_cell = len(df)
 
-    print(uuid, " pues ", pues_in_cell)
-    print(uuid, " structures ", structures_in_cell)
-    print(uuid, " points ", len(df))
+    #print(uuid, " pues ", pues_in_cell)
+    #print(uuid, " structures ", structures_in_cell)
+    print(uuid, " contains ", len(df), "structures")
 
     if len(df) < structures_in_cell:
         assert False, "How this did happen?"
