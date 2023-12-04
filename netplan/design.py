@@ -2011,7 +2011,6 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
 
     lv_per_customer = [dd[2] for dd in transformers]
     customers = [dd[3] for dd in transformers]
-    pues = [dd[4] for dd in transformers]
     
     output = {"latitude": latitudes, "longitude": longitudes,
               "lv_meters_per_customer": lv_per_customer,
@@ -2083,6 +2082,7 @@ def start():
     h3_structures = [str(hex(ss))[2:] for ss in structures.structure]
 
     geo = [h3.h3_to_geo(h3_s) for h3_s in h3_structures] 
+    
     x_y = [from_latlon(latitude=ll[1], longitude=ll[0]) for ll in geo]
    
     xy_df = pd.DataFrame(x_y, columns=['x', 'y', 'utm_zone_number', 'utm_zone_letter'])
@@ -2104,6 +2104,37 @@ def start():
     
     if len(df) > 0:
         tlnd(output_dir, df, pues_in_cell=pues_in_cell, structures_in_cell=structures_in_cell)
+
+    tf_csv = os.path.join(output_dir, "transformers.csv")
+    tf_df = pd.read_csv(tf_csv)
+
+    def latlon_to_utm(lat, lon, zone_number, zone_letter):
+        utm_coords = from_latlon(lat, lon, force_zone_number=zone_number, force_zone_letter=zone_letter)
+        return utm_coords[0], utm_coords[1]  # returns x, y
+
+    tf_df['utm_x'], tf_df['utm_y'] = zip(*tf_df.apply(lambda row: latlon_to_utm(row['latitude'], row['longitude'], 36, 'S'), axis=1))
+
+    from shapely.geometry import Point
+
+    gdf_structures = gpd.GeoDataFrame(df, geometry=[Point(x, y) for x, y in zip(df.x, df.y)])
+    gdf_transformers = gpd.GeoDataFrame(tf_df, geometry=[Point(x, y) for x, y in zip(tf_df.utm_x, tf_df.utm_y)])
+
+    gdf_structures.crs = gdf_transformers.crs = "EPSG:32736"
+    df_pue_1 = df[df['pue'] == 1]
+    gdf_pue_1 = gpd.GeoDataFrame(df_pue_1, geometry=[Point(x, y) for x, y in zip(df_pue_1.x, df_pue_1.y)])
+    gdf_pue_1.crs = gdf_structures.crs
+
+    # Perform spatial join
+    assigned_pues = gpd.sjoin_nearest(gdf_pue_1, gdf_transformers, how='left', distance_col='distance')
+
+    # Count PUEs assigned to each transformer
+    transformer_pue_count = assigned_pues.groupby('index_right').size()
+
+    # Add this count to the transformers DataFrame
+    gdf_transformers['pue_count'] = gdf_transformers.index.map(transformer_pue_count).fillna(0)
+
+    # Save updated DataFrame to CSV
+    gdf_transformers.to_csv(os.path.join(output_dir, 'transformers_with_pue.csv', index=False)
 
 
 if __name__ == "__main__":
