@@ -1901,10 +1901,7 @@ def generateDictsFromShp(x, y, pue):
     nodes_weights_output = []
     FID = 0
     for xx, yy, pp in zip(x, y, pue):
-        if pp:
-            nodeWeight = 10
-        else:
-            nodeWeight = 1
+        nodeWeight = 1
         FID += 1
         nodes[FID] = Node(FID, xx, yy, nodeWeight)
         centers[FID] = Node(FID, xx, yy, nodeWeight)
@@ -1983,7 +1980,6 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
         nodesByNodeID = {}
         # Start on -1 to not over count transformers
         customers = -1
-        totalWeight = 0
         segments, lvCost = CMST(nodesByClusterID[ID], maxLVLenghtInCluster, centers[ID])
 
         my_lv += lvCost
@@ -1999,12 +1995,10 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
             tree._netIDByNode[node] = netID
             tree._nodesByNetID[netID].append(node)
             customers += 1
-            totalWeight += node._weight
         for segment in segments.values():
             tree._network[netID].append(segment)
 
-        pues = int((totalWeight - customers)/10)
-        transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers, pues))
+        transformers.append((centers[ID]._x, centers[ID]._y, lvCost/customers, customers))
    
     
     lat, lon = to_latlon(centers[ID]._x, centers[ID]._y, zone_number, zone_letter)
@@ -2021,10 +2015,10 @@ def tlnd(outputDir, df, pues_in_cell=0, structures_in_cell=0):
     
     output = {"latitude": latitudes, "longitude": longitudes,
               "lv_meters_per_customer": lv_per_customer,
-              "customers": customers, "pues": pues}
+              "customers": customers}
     
     rows = list(zip(output["latitude"], output["longitude"], 
-                output["lv_meters_per_customer"], output["customers"], output["pues"]))
+                output["lv_meters_per_customer"], output["customers"]))
 
     with open(os.path.join(outputDir, "transformers.csv"), "w", newline="") as f:
         csvwriter = csv.writer(f)
