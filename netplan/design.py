@@ -2120,7 +2120,7 @@ def start():
     gdf_transformers = gpd.GeoDataFrame(tf_df, geometry=[Point(x, y) for x, y in zip(tf_df.utm_x, tf_df.utm_y)])
 
     gdf_structures.crs = gdf_transformers.crs = "EPSG:32736"
-    df_pue_1 = df[df['pue'] == 1]
+    df_pue_1 = df[df['pue'] == "1"]
     gdf_pue_1 = gpd.GeoDataFrame(df_pue_1, geometry=[Point(x, y) for x, y in zip(df_pue_1.x, df_pue_1.y)])
     gdf_pue_1.crs = gdf_structures.crs
 
@@ -2134,7 +2134,7 @@ def start():
     gdf_transformers['pue_count'] = gdf_transformers.index.map(transformer_pue_count).fillna(0)
 
     # Save updated DataFrame to CSV
-    gdf_transformers.to_csv(os.path.join(output_dir, 'transformers_with_pue.csv', index=False)
+    gdf_transformers.to_csv(os.path.join(output_dir, 'transformers_with_pue.csv'), index=False)
 
 
 if __name__ == "__main__":
